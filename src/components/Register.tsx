@@ -1,23 +1,27 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import axios from 'axios';
+import { UserContext } from './UserContext';
 
-type Props = {}
 
-export const Register = (props: Props) => {
+export const Register = () => {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const {setUsername: setLoggedInUsername, setId} : any  = useContext(UserContext)
 
 
-    const register = async(ev: Event) => {
+    const register = async(ev: React.FormEvent<HTMLFormElement>) => {
         ev.preventDefault()
-      const response = await axios.post('/register', {username,password})  
+        const {data} = await axios.post('/register', {username,password})
+        setLoggedInUsername(username)
+        setId(data.id)
+
     }
 
     return (
         <div className=' w-full h-screen flex items-center justify-center'>
             <div>
-                <form action="" onSubmit={register}>
+                <form onSubmit={register}>
                     <div className='flex flex-col gap-2'>
                     <input value={username} onChange={e => setUsername(e.target.value)} type="text" placeholder='username' className='username p-3' />
                     <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder='password' className='password p-3' />
