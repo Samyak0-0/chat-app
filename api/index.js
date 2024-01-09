@@ -5,6 +5,7 @@ import { UserModel } from "./models/User.js";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import bcrypt from "bcryptjs"
 
 
 const app = express();
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 const jwtSecret = process.env.JWT_SECRET;
+const bcryptSalt = bcrypt.genSaltSync(10)
 
 app.use(
   cors({
@@ -41,7 +43,8 @@ app.get("/test", (req, res) => {
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
   try {
-    const createdUser = await UserModel.create({ username, password });
+    const hashedPassword = bcrypt.hashSync(password, bcryptSalt)
+    const createdUser = await UserModel.create({ username: username, password: hashedPassword });
 
     jwt.sign({ userId: createdUser._id, username }, jwtSecret, {}, (err, token) => {
       if (err) throw err;
@@ -58,7 +61,20 @@ app.post("/register", async (req, res) => {
 
 app.post('/login', async(req,res) => {
   const {username , password} = req.body
-  const foundUser = await UserModel.find({username})
+  const foundUser = await UserModel.findOne({username})
+
+  if(foundUser) {
+    const passOk = bcrypt.compareSync(password, foundUser.password)
+    if(passOk) {
+      jwt.sign({ userId: foundUser._id, username }, jwtSecret, {}, (err, token) => {
+        if (err) throw err;
+        res.cookie("token", token).json({
+          id: foundUser._id,
+        });
+      });
+    }
+  }
+
 })
 
 
