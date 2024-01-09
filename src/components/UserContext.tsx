@@ -6,7 +6,7 @@ export type StateContextType = {
     setUsername: React.Dispatch<React.SetStateAction<null>> |  React.Dispatch<React.SetStateAction<string>>;
     id: null | number;
     setId: React.Dispatch<React.SetStateAction<null>> |  React.Dispatch<React.SetStateAction<number>>;
-  };
+};
   
 
 export const UserContext = createContext<null | StateContextType>(null)
@@ -18,7 +18,8 @@ export const UserContextProvider = ({children} : {children: ReactNode}) => {
 
     useEffect(() => {
         axios.get('/profile').then(res => {
-            console.log(res.data)
+            setId(res.data.userId)
+            setUsername(res.data.username)
         })
     },[])
 

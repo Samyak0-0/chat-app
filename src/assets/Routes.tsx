@@ -1,5 +1,5 @@
-import React from 'react'
-import { Register } from '../components/Register'
+
+import RegisterAndLogin from '../components/RegisterAndLogin'
 import { useContext } from 'react';
 import { UserContext } from '../components/UserContext';
 
@@ -14,6 +14,6 @@ export default function Routes({}: Props) {
     }
     
   return (
-    <Register />
+    <RegisterAndLogin />
   )
 }
