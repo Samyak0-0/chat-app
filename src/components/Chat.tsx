@@ -1,7 +1,13 @@
+import { useEffect } from "react"
 
 type Props = {}
 
 const Chat = (props: Props) => {
+
+    useEffect( () => {
+        new WebSocket('ws://localhost:4000')
+    }, [])
+
     return (
         <div className=" flex h-screen w-screen">
             <div className="bg-neutral-700 w-1/3">Contacts</div>

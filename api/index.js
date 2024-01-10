@@ -1,12 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
+import mongoose, { connection } from "mongoose";
 import { UserModel } from "./models/User.js";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcryptjs"
-
+import WebSocket from "ws";
 
 const app = express();
 dotenv.config();
@@ -90,8 +90,12 @@ app.get("/profile", (req, res) => {
   }
 });
 
-app.listen(4000);
+const server = app.listen(4000);
 
+const wss = new WebSocket.WebSocketServer({server})
+wss.on('connection', (connection) => {
+  console.log('connected')
+})
 //D5ewITWTTVZmmmLI
 
 //p50ky1PoLLx6EYvZ
