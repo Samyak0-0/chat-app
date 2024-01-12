@@ -1,12 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
-import mongoose, { connection } from "mongoose";
+import mongoose from "mongoose";
 import { UserModel } from "./models/User.js";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcryptjs"
-import WebSocket from "ws";
+import WebSocket, { WebSocketServer } from "ws";
 
 const app = express();
 dotenv.config();
@@ -92,10 +92,34 @@ app.get("/profile", (req, res) => {
 
 const server = app.listen(4000);
 
-const wss = new WebSocket.WebSocketServer({server})
-wss.on('connection', (connection) => {
-  console.log('connected')
+const wss = new WebSocketServer({server})
+wss.on('connection', (connection, req) => {
+  const cookies = req.headers.cookie
+
+  if(cookies) {
+    const tokenCookieString = cookies.split(';').find(str => str.startsWith('token='))
+    if(tokenCookieString) {
+      const token = tokenCookieString.split('=')[1]
+      if(token) {
+        jwt.verify(token, jwtSecret, {}, (err, userData) => {
+          if(err) throw err;
+          const {userId , username} = userData
+          connection.userId = userId
+          connection.username = username
+        })
+      }
+    }
+  }
+
+  [...wss.clients].forEach(client => {
+    client.send(JSON.stringify({
+      online: [...wss.clients].map(c => ({userId: c.userId, username: c.username}))
+    }
+    ))
+  })
 })
+
+
 //D5ewITWTTVZmmmLI
 
 //p50ky1PoLLx6EYvZ
