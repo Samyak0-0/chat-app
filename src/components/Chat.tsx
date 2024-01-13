@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Svgfunc} from "./UserAvatars"
 
 type Props = {}
 
@@ -31,11 +32,15 @@ const Chat = (props: Props) => {
 
     return (
         <div className=" flex h-screen w-screen">
-            <div className="bg-neutral-700 w-1/3">
-                Contacts
-                <div>
+            <div className="bg-neutral-700 w-1/3 text-white">
+                <div className="py-3 px-2 text-xl font-semibold">Contacts</div>
+                <div className="my-2">
                     {Object.keys(onlinePeople).map(userId => (
-                        <div>{onlinePeople[userId]}</div>
+                        
+                        <div className=" border-y-2 border-neutral-600 p-2 flex items-center" key={userId}>
+                            <div className="w-1/4 " ><Svgfunc seed={onlinePeople[userId]}/></div>
+                            <div className="ml-4">{onlinePeople[userId]}</div>
+                        </div>
                     ))}
                 </div>
             </div>
