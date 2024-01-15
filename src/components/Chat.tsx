@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react"
-import { Svgfunc} from "./UserAvatars"
+import { useContext, useEffect, useState } from "react"
+import { Svgfunc } from "./UserAvatars"
+import { UserContext } from "./UserContext"
 
 type Props = {}
 
@@ -7,6 +8,8 @@ const Chat = (props: Props) => {
 
     const [ws, setWs] = useState({})
     const [onlinePeople, setOnlinePeople] = useState({})
+    const [selectedContact, setSelectedContact] = useState<string>()
+    const { username }: any = useContext(UserContext)
 
     useEffect(() => {
         const ws = new WebSocket('ws://localhost:4000')
@@ -24,21 +27,27 @@ const Chat = (props: Props) => {
 
     const showOnlinePeople = (peopleArray) => {
         const people = {}
-        peopleArray.forEach(({ userId, username }) => {
-            people[userId] = username
+        peopleArray.forEach(({ userId, usernamee }) => {
+            people[userId] = usernamee
         })
         setOnlinePeople(people)
     }
 
+
+    function selectContact(userId: string) {
+        setSelectedContact(userId)
+    }
+
+
     return (
         <div className=" flex h-screen w-screen">
-            <div className="bg-neutral-700 w-1/3 text-white">
-                <div className="py-3 px-2 text-xl font-semibold">Contacts</div>
-                <div className="my-2">
+            <div className="bg-neutral-700 w-1/3 text-white flex flex-col">
+                <div className="py-3 px-2 text-xl font-semibold h-1/10">Contacts</div>
+                <div className="mt-2 flex flex-col h-full ">
                     {Object.keys(onlinePeople).map(userId => (
-                        
-                        <div className=" border-y-2 border-neutral-600 p-2 flex items-center" key={userId}>
-                            <div className="w-1/4 " ><Svgfunc seed={onlinePeople[userId]}/></div>
+
+                        <div onClick={() => selectContact(userId)} className={" border-y-2 border-neutral-600 p-2 flex items-center cursor-pointer" + ((userId === selectedContact) ? " bg-neutral-600" : "")} key={userId}>
+                            <div className="" ><Svgfunc seed={onlinePeople[userId]} sizze={0.09 * window.innerHeight} /></div>
                             <div className="ml-4">{onlinePeople[userId]}</div>
                         </div>
                     ))}

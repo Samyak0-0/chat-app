@@ -3,10 +3,10 @@ import { lorelei } from '@dicebear/collection';
 import { useMemo } from 'react';
 
 
-export const Svgfunc = ({seed}) => {
+export const Svgfunc = ({seed, sizze}) => {
     const avatar = useMemo(() => {
         return createAvatar(lorelei, {
-          size: 128,
+          size: sizze,
           seed: seed,
         }).toDataUriSync();
       }, []);
