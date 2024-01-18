@@ -9,7 +9,7 @@ const Chat = (props: Props) => {
     const [ws, setWs] = useState({})
     const [onlinePeople, setOnlinePeople] = useState({})
     const [selectedContact, setSelectedContact] = useState<string>()
-    const { username }: any = useContext(UserContext)
+    const { username, id }: any = useContext(UserContext)
 
     useEffect(() => {
         const ws = new WebSocket('ws://localhost:4000')
@@ -27,8 +27,8 @@ const Chat = (props: Props) => {
 
     const showOnlinePeople = (peopleArray) => {
         const people = {}
-        peopleArray.forEach(({ userId, usernamee }) => {
-            people[userId] = usernamee
+        peopleArray.forEach(({ userId, username }) => {
+            people[userId] = username
         })
         setOnlinePeople(people)
     }
@@ -38,23 +38,32 @@ const Chat = (props: Props) => {
         setSelectedContact(userId)
     }
 
+    const onlinePeopleExcludingUser = { ...onlinePeople}
+    delete onlinePeopleExcludingUser[id]
 
     return (
         <div className=" flex h-screen w-screen">
             <div className="bg-neutral-700 w-1/3 text-white flex flex-col">
                 <div className="py-3 px-2 text-xl font-semibold h-1/10">Contacts</div>
                 <div className="mt-2 flex flex-col h-full ">
-                    {Object.keys(onlinePeople).map(userId => (
+                    {Object.keys(onlinePeopleExcludingUser).map(userId => (
 
-                        <div onClick={() => selectContact(userId)} className={" border-y-2 border-neutral-600 p-2 flex items-center cursor-pointer" + ((userId === selectedContact) ? " bg-neutral-600" : "")} key={userId}>
-                            <div className="" ><Svgfunc seed={onlinePeople[userId]} sizze={0.09 * window.innerHeight} /></div>
-                            <div className="ml-4">{onlinePeople[userId]}</div>
+                        <div onClick={() => selectContact(userId)} className={" border-y-2 border-neutral-600 flex items-center cursor-pointer relative" + ((userId === selectedContact) ? " bg-neutral-600" : "")} key={userId}>
+                            <div className="h-full bg-sky-200 w-[2px] ml-1"></div>
+                            <div className="p-2 flex items-center">
+                            <div className=" relative -top-1" ><Svgfunc seed={onlinePeople[userId]} sizze={0.09 * window.innerHeight} /></div>
+                            <div className="ml-4 text-xl">{onlinePeople[userId]}</div>
+                            </div>
                         </div>
                     ))}
                 </div>
             </div>
             <div className=" bg-slate-200 w-2/3 flex flex-col justify-between">
-                <div>messages</div>
+                <div>
+                    {!selectedContact && (
+                        <div className="h-full w-full"> Select a Conversation to get Started </div>
+                    )}
+                </div>
                 <div className="flex gap-1 mx-2 my-3">
                     <input type="text" name="" id="" className=" w-full  rounded-md " />
                     <button className=" p-2 text-white">
