@@ -111,6 +111,15 @@ wss.on('connection', (connection, req) => {
     }
   }
 
+  connection.on('message', (message) => {
+    const messageData = JSON.parse(message.toString());
+    if(messageData?.recipeient && messageData?.text) {
+      [...wss.clients]
+      .filter(c => c.userId === recipeient)
+      .forEach(c => c.send(JSON.stringify({text})))
+    }
+  });
+
   [...wss.clients].forEach(client => {
     client.send(JSON.stringify({
       online: [...wss.clients].map(c => ({userId: c.userId, username: c.username}))
@@ -118,6 +127,7 @@ wss.on('connection', (connection, req) => {
     ))
   })
 })
+
 
 
 //D5ewITWTTVZmmmLI
