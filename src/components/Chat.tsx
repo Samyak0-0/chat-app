@@ -32,6 +32,7 @@ const Chat = (props: Props) => {
         if ('online' in messageData) {
             showOnlinePeople(messageData.online)
         } else {
+            console.log({messageData})
             setMessages(prev => ([...prev, {text: messageData.text, isOur: false}]))
         }
     }
