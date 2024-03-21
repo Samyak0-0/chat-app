@@ -1,11 +1,12 @@
 import { useContext, useEffect, useState } from "react"
 import { Svgfunc } from "./UserAvatars"
 import { UserContext } from "./UserContext"
+import { uniqBy } from "lodash"
 
 type messages = {
     text: string,
-    isOur : boolean,
-    sender ?: string,
+    recipient?: string,
+    sender?: string,
 }
 
 type Props = {}
@@ -17,7 +18,7 @@ const Chat = (props: Props) => {
     const [selectedContact, setSelectedContact] = useState<string>()
     const { username, id }: any = useContext(UserContext)
 
-    const[messages, setMessages] = useState<messages[]>([])
+    const [messages, setMessages] = useState<messages[]>([])
     const [newMessageText, setNewMessageText] = useState("")
 
     useEffect(() => {
@@ -29,12 +30,11 @@ const Chat = (props: Props) => {
 
     function handleMessage(ev) {
         const messageData = JSON.parse(ev.data)
-        console.log({ev, messageData})
+        console.log({ ev, messageData })
         if ('online' in messageData) {
             showOnlinePeople(messageData.online)
         } else {
-            console.log({messageData})
-            setMessages(prev => ([...prev, {text: messageData.text, isOur: false}]))
+            setMessages(prev => ([...prev, { ...messageData }]))
         }
     }
 
@@ -55,6 +55,8 @@ const Chat = (props: Props) => {
     delete onlinePeopleExcludingUser[id]
 
 
+    const messagesWithoutDupes = uniqBy(messages, 'id')
+
     function sendMessage(ev: React.FormEvent<HTMLFormElement>) {
         ev.preventDefault();
         ws?.send(JSON.stringify({
@@ -64,7 +66,12 @@ const Chat = (props: Props) => {
 
         }));
         setNewMessageText('')
-        setMessages(prev => ([...prev, {text: newMessageText, isOur: true}]))
+        setMessages(prev => ([...prev, {
+            text: newMessageText,
+            recipient: selectedContact,
+            sender: id,
+            id: Date.now(),
+        }]))
     }
 
     return (
@@ -92,9 +99,9 @@ const Chat = (props: Props) => {
 
                     {selectedContact && (
                         <div>
-                            {messages.map(msg => (
+                            {messagesWithoutDupes.map(msg => (
                                 <div>
-                                    {msg.text}
+                                    {msg.sender === id ? "d:" : "d"}{msg.text}
                                 </div>
                             ))}
                         </div>
