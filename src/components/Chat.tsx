@@ -98,10 +98,12 @@ const Chat = (props: Props) => {
                     )}
 
                     {selectedContact && (
-                        <div>
+                        <div >
                             {messagesWithoutDupes.map(msg => (
-                                <div>
-                                    {msg.sender === id ? "d:" : "d"}{msg.text}
+                                <div className={" flex flex-col  " + ( msg.sender === id? "items-end" : "")}>
+                                <div className={"py-2 block px-5 rounded-lg w-fit m-3 " + ( msg.sender === id? "bg-blue-300" : "bg-neutral-600 ")}>
+                                    {msg.text}
+                                </div>
                                 </div>
                             ))}
                         </div>
