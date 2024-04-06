@@ -17,7 +17,7 @@ mongoose
     console.log("connection successfuly !");
   })
   .catch((err) => {
-    console.log("unsuccessfull connection");
+    console.log("unsuccessfull connection", err);
   });
 
 app.use(express.json());
