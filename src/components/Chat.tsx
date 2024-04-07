@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { Svgfunc } from "./UserAvatars"
 import { UserContext } from "./UserContext"
 import { uniqBy } from "lodash"
+import axios from "axios"
 
 type messages = {
     text: string,
@@ -23,11 +24,22 @@ const Chat = (props: Props) => {
     const autoScroll = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
+        connectToWs()
+    }, [])
+
+    function connectToWs() {
         const ws = new WebSocket('ws://localhost:4000')
         console.log(ws)
         setWs(ws)
         ws.addEventListener('message', handleMessage)
-    }, [])
+        ws.addEventListener('close', () => {
+            setTimeout(() => {
+                console.log("Disconnected trying to reconnect . . . ")
+                connectToWs()
+            }, 1000)
+            
+        })
+    }
 
     function handleMessage(ev) {
         const messageData = JSON.parse(ev.data)
@@ -83,7 +95,9 @@ const Chat = (props: Props) => {
     }, [messages])
 
     useEffect(() => {
-
+        if(selectedContact) {
+            axios.get('/messages/' + selectedContact)
+        }
     }, [selectedContact])
 
     return (

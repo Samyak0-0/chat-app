@@ -33,8 +33,34 @@ app.use(
   })
 );
 
+async function getUserDataFromReq(req) {
+  return new Promise((resolve, reject) => {
+    const token = req.cookies?.token;
+    if (token) {
+      jwt.verify(token, jwtSecret, {}, (err, userData) => {
+        if (err) throw err;
+        resolve(userData);
+      });
+    } else {
+      reject('no token')
+    }
+  });
+}
+
 app.get("/test", (req, res) => {
   res.json("test ok now");
+});
+
+app.get("/messgaes/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const userData = await getUserDataFromReq(req);
+  
+  const messages = await MessageModel.find({
+    sender: {$in: [userId, userData.userId]},
+    recipient: {$in: [userId, userData.userId]},
+  }).sort({createdAt: -1})
+
+  res.json(messages)
 });
 
 app.post("/register", async (req, res) => {
@@ -143,7 +169,6 @@ wss.on("connection", (connection, req) => {
               sender: connection.userId,
               recipient,
               id: messageDoc._id,
-              
             })
           )
         );
