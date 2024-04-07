@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { Svgfunc } from "./UserAvatars"
 import { UserContext } from "./UserContext"
 import { uniqBy } from "lodash"
@@ -20,6 +20,7 @@ const Chat = (props: Props) => {
 
     const [messages, setMessages] = useState<messages[]>([])
     const [newMessageText, setNewMessageText] = useState("")
+    const autoScroll = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const ws = new WebSocket('ws://localhost:4000')
@@ -74,6 +75,17 @@ const Chat = (props: Props) => {
         }]))
     }
 
+    useEffect(() => {
+        const divsrc = autoScroll.current
+        if(divsrc) {
+            divsrc.scrollTo({top:divsrc.scrollHeight, behavior: "smooth"})
+        }
+    }, [messages])
+
+    useEffect(() => {
+
+    }, [selectedContact])
+
     return (
         <div className=" flex h-screen w-screen">
             <div className="bg-neutral-700 w-1/3 text-white flex flex-col">
@@ -92,7 +104,7 @@ const Chat = (props: Props) => {
                 </div>
             </div>
             <div className=" bg-slate-200 w-2/3 flex flex-col justify-between">
-                <div className="flex-grow">
+                <div ref={autoScroll} className="flex-grow overflow-y-scroll">
                     {!selectedContact && (
                         <div className="h-full w-full flex justify-center items-center text-neutral-400">&larr; Select a Conversation to get Started !</div>
                     )}
@@ -100,8 +112,8 @@ const Chat = (props: Props) => {
                     {selectedContact && (
                         <div >
                             {messagesWithoutDupes.map(msg => (
-                                <div className={" flex flex-col  " + ( msg.sender === id? "items-end" : "")}>
-                                <div className={"py-2 block px-5 rounded-lg w-fit m-3 " + ( msg.sender === id? "bg-blue-300" : "bg-neutral-600 ")}>
+                                <div className={" flex flex-col text-white " + ( msg.sender === id? "items-end" : "")}>
+                                <div className={"py-2 block px-5 rounded-lg w-fit m-3 " + ( msg.sender === id? "bg-blue-500" : "bg-neutral-600 ")}>
                                     {msg.text}
                                 </div>
                                 </div>
