@@ -68,7 +68,7 @@ const Chat = (props: Props) => {
     delete onlinePeopleExcludingUser[id]
 
 
-    const messagesWithoutDupes = uniqBy(messages, 'id')
+    const messagesWithoutDupes = uniqBy(messages, '_id')
 
     function sendMessage(ev: React.FormEvent<HTMLFormElement>) {
         ev.preventDefault();
@@ -83,7 +83,7 @@ const Chat = (props: Props) => {
             text: newMessageText,
             recipient: selectedContact,
             sender: id,
-            id: Date.now(),
+            _id: Date.now(),
         }]))
     }
 
@@ -96,7 +96,9 @@ const Chat = (props: Props) => {
 
     useEffect(() => {
         if(selectedContact) {
-            axios.get('/messages/' + selectedContact)
+            axios.get('/messages/' + selectedContact).then(res => {
+                setMessages(res.data)
+            })
         }
     }, [selectedContact])
 
@@ -110,7 +112,7 @@ const Chat = (props: Props) => {
                         <div onClick={() => selectContact(userId)} className={" border-y-2 border-neutral-600 flex items-center cursor-pointer relative" + ((userId === selectedContact) ? " bg-neutral-600" : "")} key={userId}>
                             <div className="h-full bg-slate-200 w-[2px] ml-1"></div>
                             <div className="p-2 flex items-center">
-                                <div className=" relative -top-1" ><Svgfunc seed={onlinePeople[userId]} sizze={0.09 * window.innerHeight} /></div>
+                                <div className=" relative -top-1" ><Svgfunc seed={onlinePeople[userId]} sizze={0.1* window.innerHeight} /></div>
                                 <div className="ml-4 text-xl">{onlinePeople[userId]}</div>
                             </div>
                         </div>
@@ -126,10 +128,10 @@ const Chat = (props: Props) => {
                     {selectedContact && (
                         <div >
                             {messagesWithoutDupes.map(msg => (
-                                <div className={" flex flex-col text-white " + ( msg.sender === id? "items-end" : "")}>
-                                <div className={"py-2 block px-5 rounded-lg w-fit m-3 " + ( msg.sender === id? "bg-blue-500" : "bg-neutral-600 ")}>
-                                    {msg.text}
-                                </div>
+                                <div key={msg._id} className={" flex flex-col text-white " + ( msg.sender === id? "items-end" : "")}>
+                                    <div className={"py-2 block px-5 rounded-lg w-fit m-3 " + ( msg.sender === id? "bg-blue-500" : "bg-neutral-600 ")}>
+                                        {msg.text}
+                                    </div>
                                 </div>
                             ))}
                         </div>

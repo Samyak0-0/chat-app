@@ -51,14 +51,14 @@ app.get("/test", (req, res) => {
   res.json("test ok now");
 });
 
-app.get("/messgaes/:userId", async (req, res) => {
+app.get("/messages/:userId", async (req, res) => {
   const { userId } = req.params;
   const userData = await getUserDataFromReq(req);
   
   const messages = await MessageModel.find({
     sender: {$in: [userId, userData.userId]},
     recipient: {$in: [userId, userData.userId]},
-  }).sort({createdAt: -1})
+  }).sort({createdAt: 1})
 
   res.json(messages)
 });
@@ -168,7 +168,7 @@ wss.on("connection", (connection, req) => {
               text,
               sender: connection.userId,
               recipient,
-              id: messageDoc._id,
+              _id: messageDoc._id,
             })
           )
         );
