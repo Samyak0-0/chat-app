@@ -112,7 +112,7 @@ const Chat = (props: Props) => {
                         <div onClick={() => selectContact(userId)} className={" border-y-2 border-neutral-600 flex items-center cursor-pointer relative" + ((userId === selectedContact) ? " bg-neutral-600" : "")} key={userId}>
                             <div className="h-full bg-slate-200 w-[2px] ml-1"></div>
                             <div className="p-2 flex items-center">
-                                <div className=" relative -top-1" ><Svgfunc seed={onlinePeople[userId]} sizze={0.1* window.innerHeight} /></div>
+                                <div className=" relative -top-1" ><Svgfunc seed={onlinePeople[userId]} online={true} sizze={0.1* window.innerHeight} /></div>
                                 <div className="ml-4 text-xl">{onlinePeople[userId]}</div>
                             </div>
                         </div>
