@@ -1,8 +1,9 @@
 import { useContext, useEffect, useRef, useState } from "react"
-import { Svgfunc } from "./UserAvatars"
+
 import { UserContext } from "./UserContext"
 import { uniqBy } from "lodash"
 import axios from "axios"
+import Contact from "./Contact"
 
 type messages = {
     text: string,
@@ -23,6 +24,8 @@ const Chat = (props: Props) => {
     const [newMessageText, setNewMessageText] = useState("")
     const autoScroll = useRef<HTMLDivElement | null>(null);
 
+    const [offlinePeople, setOfflinePeople] = useState({})
+
     useEffect(() => {
         connectToWs()
     }, [])
@@ -37,7 +40,7 @@ const Chat = (props: Props) => {
                 console.log("Disconnected trying to reconnect . . . ")
                 connectToWs()
             }, 1000)
-            
+
         })
     }
 
@@ -89,18 +92,32 @@ const Chat = (props: Props) => {
 
     useEffect(() => {
         const divsrc = autoScroll.current
-        if(divsrc) {
-            divsrc.scrollTo({top:divsrc.scrollHeight, behavior: "smooth"})
+        if (divsrc) {
+            divsrc.scrollTo({ top: divsrc.scrollHeight, behavior: "smooth" })
         }
     }, [messages])
 
     useEffect(() => {
-        if(selectedContact) {
+        if (selectedContact) {
             axios.get('/messages/' + selectedContact).then(res => {
                 setMessages(res.data)
             })
         }
     }, [selectedContact])
+
+    useEffect(() => {
+        axios.get('/people').then(res => {
+            const offlinePplArray = res.data
+                .filter(p => p._id !== id)
+                .filter(p => !Object.keys(onlinePeople).includes(p._id))
+
+            const offlinePpl = {}
+            offlinePplArray.forEach(e => {
+                offlinePpl[e._id] = e;
+            });
+            setOfflinePeople(offlinePpl)
+        })
+    }, [onlinePeople])
 
     return (
         <div className=" flex h-screen w-screen">
@@ -109,13 +126,26 @@ const Chat = (props: Props) => {
                 <div className="mt-2 flex flex-col h-full ">
                     {Object.keys(onlinePeopleExcludingUser).map(userId => (
 
-                        <div onClick={() => selectContact(userId)} className={" border-y-2 border-neutral-600 flex items-center cursor-pointer relative" + ((userId === selectedContact) ? " bg-neutral-600" : "")} key={userId}>
-                            <div className="h-full bg-slate-200 w-[2px] ml-1"></div>
-                            <div className="p-2 flex items-center">
-                                <div className=" relative -top-1" ><Svgfunc seed={onlinePeople[userId]} online={true} sizze={0.1* window.innerHeight} /></div>
-                                <div className="ml-4 text-xl">{onlinePeople[userId]}</div>
-                            </div>
-                        </div>
+                        <Contact
+                            key={userId}
+                            userId={userId}
+                            username={onlinePeopleExcludingUser[userId]}
+                            onClickk={() => selectContact(userId)}
+                            selectedContact={selectedContact}
+                            online={true} />
+
+                    ))}
+
+                    {Object.keys(offlinePeople).map(userId => (
+
+                        <Contact
+                            key={userId}
+                            userId={userId}
+                            username={offlinePeople[userId].username}
+                            onClickk={() => selectContact(userId)}
+                            selectedContact={selectedContact}
+                            online={false} />
+
                     ))}
                 </div>
             </div>
@@ -128,8 +158,8 @@ const Chat = (props: Props) => {
                     {selectedContact && (
                         <div >
                             {messagesWithoutDupes.map(msg => (
-                                <div key={msg._id} className={" flex flex-col text-white " + ( msg.sender === id? "items-end" : "")}>
-                                    <div className={"py-2 block px-5 rounded-lg w-fit m-3 " + ( msg.sender === id? "bg-blue-500" : "bg-neutral-600 ")}>
+                                <div key={msg._id} className={" flex flex-col text-white " + (msg.sender === id ? "items-end" : "")}>
+                                    <div className={"py-2 block px-5 rounded-lg w-fit m-3 " + (msg.sender === id ? "bg-blue-500" : "bg-neutral-600 ")}>
                                         {msg.text}
                                     </div>
                                 </div>
