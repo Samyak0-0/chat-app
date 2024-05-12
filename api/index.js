@@ -8,6 +8,8 @@ import cookieParser from "cookie-parser";
 import bcrypt from "bcryptjs";
 import WebSocket, { WebSocketServer } from "ws";
 import { MessageModel } from "./models/Message.js";
+import fs from "fs";
+
 
 const app = express();
 dotenv.config();
@@ -121,6 +123,11 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.post('/logout', (req,res) => {
+  res.cookie('token', '', {sameSite:'none', secure:true}).json('ok');
+});
+
+
 app.get("/profile", (req, res) => {
   const token = req.cookies?.token;
   if (token) {
@@ -156,13 +163,14 @@ wss.on("connection", (connection, req) => {
     connection.ping()
     connection.deathTimer = setTimeout(() => {
       connection.isAlive = false
+      clearInterval(connection.timer)
       connection.terminate();
       notifyOnlinePeople();
     }, 1000)
   }, 5000)
 
   connection.on('pong', () => {
-
+    clearTimeout(connection.deathTimer)
   })
 
   const cookies = req.headers.cookie;
@@ -186,7 +194,19 @@ wss.on("connection", (connection, req) => {
 
   connection.on("message", async (message) => {
     const messageData = JSON.parse(message.toString());
-    const { recipient, text } = messageData;
+    const { recipient, text, file } = messageData;
+
+    if (file) {
+      const parts = file.name.split('.')
+      const ext = parts[parts.length - 1]
+      const filename = Date.now() + '.' + ext;
+      const path = __dirname + '/uploads/' + filename;
+
+      const bufferData = newBuffer(file.data, 'base64')
+      fs.writeFile(path, bufferData, () => {
+        console.log('file saved: ', path)
+      })
+    }
 
     if (recipient && text) {
       const messageDoc = await MessageModel.create({

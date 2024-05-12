@@ -15,10 +15,10 @@ type Props = {}
 
 const Chat = (props: Props) => {
 
-    const [ws, setWs] = useState<WebSocket>()
+    const [ws, setWs] = useState<WebSocket | null>()
     const [onlinePeople, setOnlinePeople] = useState({})
     const [selectedContact, setSelectedContact] = useState<string>()
-    const { username, id }: any = useContext(UserContext)
+    const { username, id, setId, setUsername }: any = useContext(UserContext)
 
     const [messages, setMessages] = useState<messages[]>([])
     const [newMessageText, setNewMessageText] = useState("")
@@ -73,13 +73,22 @@ const Chat = (props: Props) => {
 
     const messagesWithoutDupes = uniqBy(messages, '_id')
 
-    function sendMessage(ev: React.FormEvent<HTMLFormElement>) {
-        ev.preventDefault();
+    function logout() {
+        axios.post('/logout').then(() => {
+            setWs(null);
+            setId(null);
+            setUsername(null);
+          });
+    }
+
+    function sendMessage(ev, file) {
+
+        if (ev) ev.preventDefault();
         ws?.send(JSON.stringify({
 
             recipient: selectedContact,
             text: newMessageText,
-
+            file,
         }));
         setNewMessageText('')
         setMessages(prev => ([...prev, {
@@ -88,6 +97,19 @@ const Chat = (props: Props) => {
             sender: id,
             _id: Date.now(),
         }]))
+    }
+
+    function sendFile(ev) {
+        const reader = new FileReader();
+
+        reader.readAsDataURL(ev.target.files[0])
+        reader.onload = () => {
+            sendMessage(null, {
+                name: ev.target.files[0].name,
+                data: reader.result,
+            })
+        }
+       
     }
 
     useEffect(() => {
@@ -122,31 +144,40 @@ const Chat = (props: Props) => {
     return (
         <div className=" flex h-screen w-screen">
             <div className="bg-neutral-700 w-1/3 text-white flex flex-col">
-                <div className="py-3 px-2 text-xl font-semibold h-1/10">Contacts</div>
-                <div className="mt-2 flex flex-col h-full ">
-                    {Object.keys(onlinePeopleExcludingUser).map(userId => (
+                <div className="py-3 px-2 text-2xl font-semibold h-1/10">Contacts</div>
+                <div className="flex flex-col overflow-x-hidden">
+                    <div className="mt-2 flex flex-col flex-grow overflow-y-scroll">
+                        {Object.keys(onlinePeopleExcludingUser).map(userId => (
 
-                        <Contact
-                            key={userId}
-                            userId={userId}
-                            username={onlinePeopleExcludingUser[userId]}
-                            onClickk={() => selectContact(userId)}
-                            selectedContact={selectedContact}
-                            online={true} />
+                            <Contact
+                                key={userId}
+                                userId={userId}
+                                username={onlinePeopleExcludingUser[userId]}
+                                onClickk={() => selectContact(userId)}
+                                selectedContact={selectedContact}
+                                online={true} />
 
-                    ))}
+                        ))}
 
-                    {Object.keys(offlinePeople).map(userId => (
+                        {Object.keys(offlinePeople).map(userId => (
 
-                        <Contact
-                            key={userId}
-                            userId={userId}
-                            username={offlinePeople[userId].username}
-                            onClickk={() => selectContact(userId)}
-                            selectedContact={selectedContact}
-                            online={false} />
+                            <Contact
+                                key={userId}
+                                userId={userId}
+                                username={offlinePeople[userId].username}
+                                onClickk={() => selectContact(userId)}
+                                selectedContact={selectedContact}
+                                online={false} />
 
-                    ))}
+                        ))}
+
+
+                    </div>
+                    <div className="text-center text-gray-200 flex-grow-0">
+                        <p>{username}</p>
+                        <button
+                        onClick={logout}>logout</button>
+                    </div>
                 </div>
             </div>
             <div className=" bg-slate-200 w-2/3 flex flex-col justify-between">
@@ -171,6 +202,10 @@ const Chat = (props: Props) => {
                 {selectedContact && (
                     <form className="flex gap-1 mx-2 my-3" onSubmit={sendMessage}>
                         <input type="text" value={newMessageText} onChange={ev => setNewMessageText(ev.target.value)} name="" id="" placeholder="Type your message here . . ." className=" w-full px-3 rounded-md " />
+                        <label>
+                            <input type="file" className="hidden" onChange={sendFile}/>
+                            attach
+                        </label>
                         <button type="submit" className=" p-2 text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
