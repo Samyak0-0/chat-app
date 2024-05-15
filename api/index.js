@@ -207,13 +207,13 @@ wss.on("connection", (connection, req) => {
       filename = Date.now() + "." + ext;
       const path = __dirname + "/uploads/" + filename;
 
-      const bufferData = new Buffer(file.data, "base64");
+      const bufferData = new Buffer(file.data.split(',')[1], "base64");
       fs.writeFile(path, bufferData, () => {
         console.log("file saved: ", path);
       });
     }
 
-    if (recipient && text) {
+    if (recipient && (text || file)) {
       const messageDoc = await MessageModel.create({
         sender: connection.userId,
         recipient,
@@ -230,6 +230,7 @@ wss.on("connection", (connection, req) => {
               sender: connection.userId,
               recipient,
               _id: messageDoc._id,
+              file: file? filename : null,
             })
           )
         );

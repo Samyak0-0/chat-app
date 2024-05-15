@@ -55,7 +55,9 @@ const Chat = (props: Props) => {
         if ('online' in messageData) {
             showOnlinePeople(messageData.online)
         } else {
-            setMessages(prev => ([...prev, { ...messageData }]))
+            if (messageData.sender === selectedContact) {
+                setMessages(prev => ([...prev, { ...messageData }]))
+            }
         }
     }
 
@@ -83,10 +85,10 @@ const Chat = (props: Props) => {
             setWs(null);
             setId(null);
             setUsername(null);
-          });
+        });
     }
 
-    function sendMessage(ev, file:attach | null = null) {
+    function sendMessage(ev, file: attach | null = null) {
 
         if (ev) ev.preventDefault();
         ws?.send(JSON.stringify({
@@ -95,13 +97,20 @@ const Chat = (props: Props) => {
             text: newMessageText,
             file,
         }));
-        setNewMessageText('')
-        setMessages(prev => ([...prev, {
-            text: newMessageText,
-            recipient: selectedContact,
-            sender: id,
-            _id: Date.now(),
-        }]))
+
+        if (file) {
+            axios.get('/messages/' + selectedContact).then(res => {
+                setMessages(res.data)
+            })
+        } else {
+            setNewMessageText('')
+            setMessages(prev => ([...prev, {
+                text: newMessageText,
+                recipient: selectedContact,
+                sender: id,
+                _id: Date.now(),
+            }]))
+        }
     }
 
     function sendFile(ev) {
@@ -114,7 +123,7 @@ const Chat = (props: Props) => {
                 data: reader.result,
             })
         }
-       
+
     }
 
     useEffect(() => {
@@ -181,7 +190,7 @@ const Chat = (props: Props) => {
                     <div className="text-center text-gray-200 flex-grow-0">
                         <p>{username}</p>
                         <button
-                        onClick={logout}>logout</button>
+                            onClick={logout}>logout</button>
                     </div>
                 </div>
             </div>
@@ -197,6 +206,11 @@ const Chat = (props: Props) => {
                                 <div key={msg._id} className={" flex flex-col text-white " + (msg.sender === id ? "items-end" : "")}>
                                     <div className={"py-2 block px-5 rounded-lg w-fit m-3 " + (msg.sender === id ? "bg-blue-500" : "bg-neutral-600 ")}>
                                         {msg.text}
+                                        {msg.file && (
+                                            <a href={axios.defaults.baseURL + '/uploads/' + msg.file} target="_blank">
+                                                {msg.file}
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -208,7 +222,7 @@ const Chat = (props: Props) => {
                     <form className="flex gap-1 mx-2 my-3" onSubmit={sendMessage}>
                         <input type="text" value={newMessageText} onChange={ev => setNewMessageText(ev.target.value)} name="" id="" placeholder="Type your message here . . ." className=" w-full px-3 rounded-md " />
                         <label>
-                            <input type="file" className="hidden" onChange={sendFile}/>
+                            <input type="file" className="hidden" onChange={sendFile} />
                             attach
                         </label>
                         <button type="submit" className=" p-2 text-white">

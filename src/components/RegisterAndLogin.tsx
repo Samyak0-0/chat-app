@@ -7,7 +7,7 @@ const RegisterAndLogin = () => {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoginOrRegister, setIsLoginOrRegister] = useState('Register')
+    const [isLoginOrRegister, setIsLoginOrRegister] = useState('Login')
 
     const { setUsername: setLoggedInUsername, setId }: any = useContext(UserContext)
 
