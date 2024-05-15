@@ -11,6 +11,11 @@ type messages = {
     sender?: string,
 }
 
+type attach = {
+    name: string,
+    data: string | ArrayBuffer | null,
+}
+
 type Props = {}
 
 const Chat = (props: Props) => {
@@ -81,7 +86,7 @@ const Chat = (props: Props) => {
           });
     }
 
-    function sendMessage(ev, file) {
+    function sendMessage(ev, file:attach | null = null) {
 
         if (ev) ev.preventDefault();
         ws?.send(JSON.stringify({

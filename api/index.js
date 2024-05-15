@@ -9,6 +9,12 @@ import bcrypt from "bcryptjs";
 import WebSocket, { WebSocketServer } from "ws";
 import { MessageModel } from "./models/Message.js";
 import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 
 const app = express();
@@ -22,6 +28,7 @@ mongoose
     console.log("unsuccessfull connection", err);
   });
 
+app.use('/uploads', express.static(__dirname + '/uploads'))
 app.use(express.json());
 app.use(cookieParser());
 
@@ -44,7 +51,7 @@ async function getUserDataFromReq(req) {
         resolve(userData);
       });
     } else {
-      reject('no token')
+      reject("no token");
     }
   });
 }
@@ -56,21 +63,19 @@ app.get("/test", (req, res) => {
 app.get("/messages/:userId", async (req, res) => {
   const { userId } = req.params;
   const userData = await getUserDataFromReq(req);
-  
-  const messages = await MessageModel.find({
-    sender: {$in: [userId, userData.userId]},
-    recipient: {$in: [userId, userData.userId]},
-  }).sort({createdAt: 1})
 
-  res.json(messages)
+  const messages = await MessageModel.find({
+    sender: { $in: [userId, userData.userId] },
+    recipient: { $in: [userId, userData.userId] },
+  }).sort({ createdAt: 1 });
+
+  res.json(messages);
 });
 
-
-app.get('/people', async(req, res) => {
-  const users = await UserModel.find({}, {'_id': 1, username: 1});
+app.get("/people", async (req, res) => {
+  const users = await UserModel.find({}, { _id: 1, username: 1 });
   res.json(users);
-})
-
+});
 
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
@@ -123,10 +128,9 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post('/logout', (req,res) => {
-  res.cookie('token', '', {sameSite:'none', secure:true}).json('ok');
+app.post("/logout", (req, res) => {
+  res.cookie("token", "", { sameSite: "none", secure: true }).json("ok");
 });
-
 
 app.get("/profile", (req, res) => {
   const token = req.cookies?.token;
@@ -144,7 +148,6 @@ const server = app.listen(4000);
 
 const wss = new WebSocketServer({ server });
 wss.on("connection", (connection, req) => {
-
   function notifyOnlinePeople() {
     [...wss.clients].forEach((client) => {
       client.send(
@@ -158,20 +161,20 @@ wss.on("connection", (connection, req) => {
     });
   }
 
-  connection.isAlive = true
+  connection.isAlive = true;
   connection.timer = setInterval(() => {
-    connection.ping()
+    connection.ping();
     connection.deathTimer = setTimeout(() => {
-      connection.isAlive = false
-      clearInterval(connection.timer)
+      connection.isAlive = false;
+      clearInterval(connection.timer);
       connection.terminate();
       notifyOnlinePeople();
-    }, 1000)
-  }, 5000)
+    }, 1000);
+  }, 5000);
 
-  connection.on('pong', () => {
-    clearTimeout(connection.deathTimer)
-  })
+  connection.on("pong", () => {
+    clearTimeout(connection.deathTimer);
+  });
 
   const cookies = req.headers.cookie;
 
@@ -195,17 +198,19 @@ wss.on("connection", (connection, req) => {
   connection.on("message", async (message) => {
     const messageData = JSON.parse(message.toString());
     const { recipient, text, file } = messageData;
-
+    let filename = null;
+    
     if (file) {
-      const parts = file.name.split('.')
-      const ext = parts[parts.length - 1]
-      const filename = Date.now() + '.' + ext;
-      const path = __dirname + '/uploads/' + filename;
+      
+      const parts = file.name.split(".");
+      const ext = parts[parts.length - 1];
+      filename = Date.now() + "." + ext;
+      const path = __dirname + "/uploads/" + filename;
 
-      const bufferData = newBuffer(file.data, 'base64')
+      const bufferData = new Buffer(file.data, "base64");
       fs.writeFile(path, bufferData, () => {
-        console.log('file saved: ', path)
-      })
+        console.log("file saved: ", path);
+      });
     }
 
     if (recipient && text) {
@@ -213,6 +218,7 @@ wss.on("connection", (connection, req) => {
         sender: connection.userId,
         recipient,
         text,
+        file: file? filename: null,
       });
 
       [...wss.clients]
@@ -230,9 +236,8 @@ wss.on("connection", (connection, req) => {
     }
   });
 
- notifyOnlinePeople();
+  notifyOnlinePeople();
 });
-
 
 //D5ewITWTTVZmmmLI
 
