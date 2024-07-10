@@ -6,7 +6,6 @@ import { useMemo } from 'react';
 export const Svgfunc = ({ seed, online }) => {
   const avatar = useMemo(() => {
     return createAvatar(lorelei, {
-      // size: sizze,
       seed: seed,
     }).toDataUriSync();
   }, []);
