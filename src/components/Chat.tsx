@@ -16,9 +16,7 @@ type attach = {
     data: string | ArrayBuffer | null,
 }
 
-type Props = {}
-
-const Chat = (props: Props) => {
+const Chat = () => {
 
     const [ws, setWs] = useState<WebSocket | null>()
     const [onlinePeople, setOnlinePeople] = useState({})

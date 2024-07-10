@@ -8,7 +8,7 @@ type Props = {}
 
 export default function Routes({}: Props) {
 
-    const {username, id}: any = useContext(UserContext)
+    const {username}: any = useContext(UserContext)
 
     if(username) {
         return <Chat />
