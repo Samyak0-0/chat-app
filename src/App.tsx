@@ -6,7 +6,7 @@ import Routes from './assets/Routes.js';
 
 function App() {
 
-  axios.defaults.baseURL = 'https://chat-app-server-sepia.vercel.app';
+  axios.defaults.baseURL = 'https://chat-app-server-virid-seven.vercel.app';
   axios.defaults.withCredentials = true;
   
 
