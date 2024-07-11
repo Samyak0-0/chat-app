@@ -6,7 +6,7 @@ import Routes from './assets/Routes.js';
 
 function App() {
 
-  axios.defaults.baseURL = 'https://chat-app-server-virid-seven.vercel.app';
+  axios.defaults.baseURL = 'http://localhost:4000';
   axios.defaults.withCredentials = true;
   
 
