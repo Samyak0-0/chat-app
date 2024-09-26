@@ -31,7 +31,7 @@ const Chat = () => {
 
     useEffect(() => {
         connectToWs()
-    }, [])
+    }, [selectedContact])
 
     function connectToWs() {
         const ws = new WebSocket('ws://localhost:4000')
